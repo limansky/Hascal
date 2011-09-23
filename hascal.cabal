@@ -1,0 +1,13 @@
+Name: Hascal
+Version:            0.0.1
+Cabal-Version:      >= 1.4
+License:            BSD3
+License-File:       LICENSE
+Author:             Mike Limansky, Victor Portnov
+Synopsis:           Simple personal organizaer
+Build-Type:         Simple
+
+Executable          hascal
+  Main-Is:              Hascal.hs
+  Hs-Source-Dirs:       src
+  Build-Depends:        base
