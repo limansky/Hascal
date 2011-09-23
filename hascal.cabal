@@ -8,6 +8,8 @@ Synopsis:           Simple personal organizaer
 Build-Type:         Simple
 
 Executable          hascal
-  Main-Is:              Hascal.hs
   Hs-Source-Dirs:       src
-  Build-Depends:        base
+  Main-Is:              Hascal.hs
+  Other-Modules:
+    Event
+  Build-Depends:        base, time
