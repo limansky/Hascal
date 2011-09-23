@@ -15,5 +15,11 @@ data Event = Event {
     deriving (Eq)
 
 instance Show Event where
-    show (Event id t _ s (Interval i) r) = show id ++ " : " ++ show t ++ " (" ++ show s ++ " - " ++ (show $ addUTCTime i s) ++ ") rem: " ++ show r
-    show (Event id t _ s AllDay r)       = show id ++ " : " ++ show t ++ " (" ++ show (utctDay s) ++ ") rem: " ++ show r
+    show e = show id ++ " : " ++ show t ++ " (" ++ period ++ ") rem: " ++ show r
+        where id = eventId e
+              t = eventTitle e
+              r = eventReminder e
+              s = eventStart e
+              period = case eventDuration e of
+                 AllDay     -> show . utctDay $ s
+                 Interval i -> show s ++ " - " ++ (show $ addUTCTime i s)
