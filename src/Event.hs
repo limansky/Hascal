@@ -1,7 +1,16 @@
-module Event where
+module Event 
+    (
+        Event(..),
+        eventToICal,
+        icalToEvent
+    )
+where
 
 import Data.Time
 import System.Locale
+import qualified Data.Map as M
+
+import ICalParser
 
 data Duration = Interval NominalDiffTime | AllDay deriving (Eq)
 
@@ -50,3 +59,8 @@ eventToICal e = calLine calBegin calVevent
                               in calLine calDtEnd (formatTime defaultTimeLocale isoTimeFormat endTime)
               desc = lines . eventDescription $ e
               descFooter = concat $ map (\s -> " " ++ s ++ crlf) (tail desc)
+
+icalToEvent s = case parseIcal s of
+    Left _  -> Nothing
+    Right m -> parseTime defaultTimeLocale isoTimeFormat (m M.! calDtStart) 
+                >>= \start -> Just $ Event 0 (m M.! calSummary) (m M.! calDescription) start AllDay Nothing

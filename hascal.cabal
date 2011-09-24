@@ -12,4 +12,4 @@ Executable          hascal
   Main-Is:              Hascal.hs
   Other-Modules:
     Event
-  Build-Depends:        base, time, old-locale
+  Build-Depends:        base, time, old-locale, containers, parsec
