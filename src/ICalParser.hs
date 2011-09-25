@@ -19,6 +19,16 @@ line = do
     return (k, v)
 
 key = many (noneOf ":\r\n")
-value = many (noneOf "\r\n")
+
+value = do
+    l <- valueFstLine
+    string "\r\n"
+    ls <- many valueNextLines
+    return $ l ++ concat ls
+
+valueFstLine = many (noneOf "\r\n")
+valueNextLines = do
+    char ' '
+    fmap (' ':) valueFstLine
 
 parseIcal s = fmap fromList $ parse icalFile "Invalid data" s
