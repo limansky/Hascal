@@ -44,7 +44,11 @@ paramName = many1 $ noneOf "="
 
 paramValue = quotedString <|> many1 safeChar
 
-uid = property calUid $ makeSimpleProperty Uid
+uid = property calUid $ makeStringProperty Uid
+summary = property calSummary $ makeStringProperty Summary
+description = property calDescription $ makeStringProperty Description
+organizer = property calOrganizer makeOrganizer
+attendee = property calAttendee makeAttendee
 
 icalFile = many1 calItem
 
