@@ -13,6 +13,8 @@ calRole = "ROLE"
 calPartStat = "PARTSTAT"
 calOrganizer = "ORGANIZER"
 calAttendee = "ATTENDEE"
+calLocation = "LOCATION"
+calPriority = "PRIORITY"
 
 calRoleChair = "CHAIR"
 calRoleReq = "REQ-PARTICIPANT"
@@ -44,6 +46,8 @@ data PartStat = NeedsAction | Accepted | Declined | Tentative | Delegated | Comp
 data ComponentProperty = Uid { propertyUid :: String }
     | Summary { propertySummary :: String }
     | Description { propertyDescription :: String }
+    | Location { propertyLocation :: String }
+    | Priority { propertyPriority :: Integer }
     | Organizer { propertyOrganizer :: String
                 , organizerName :: Maybe String }
     | Attendee { propertyAttendee :: String
@@ -53,6 +57,8 @@ data ComponentProperty = Uid { propertyUid :: String }
     deriving (Eq, Show)
 
 makeStringProperty f _ s = f s
+
+makeNumProperty f _ s = f $ read s
 
 makeOrganizer p s = Organizer s name
     where name = lookup calCN p

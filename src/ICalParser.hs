@@ -49,6 +49,8 @@ summary = property calSummary $ makeStringProperty Summary
 description = property calDescription $ makeStringProperty Description
 organizer = property calOrganizer makeOrganizer
 attendee = property calAttendee makeAttendee
+location = property calLocation $ makeStringProperty Location
+priority = property calPriority $ makeNumProperty Priority
 
 icalFile = many1 calItem
 
