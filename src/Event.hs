@@ -11,6 +11,7 @@ import System.Locale
 import qualified Data.Map as M
 
 import ICalParser
+import ICalDefs
 
 data Duration = Interval NominalDiffTime | AllDay deriving (Eq)
 
@@ -33,16 +34,6 @@ instance Show Event where
               period = case eventDuration e of
                  AllDay     -> show . utctDay $ s
                  Interval i -> show s ++ " - " ++ (show $ addUTCTime i s)
-
-calBegin = "BEGIN"
-calEnd = "END"
-calVevent = "VEVENT"
-calDtStart = "DTSTART"
-calDtEnd = "DTEND"
-calSummary = "SUMMARY"
-calDescription = "DESCRIPTION"
-isoTimeFormat = "%Y%m%dT%H%M%SZ"
-crlf = "\r\n"
 
 calLine key value = key ++ ": " ++ value ++ crlf
 

@@ -1,34 +1,56 @@
 module ICalParser
-    (
+{-    (
         parseIcal
-    )
+    ) -}
 where
+
+import ICalDefs
 
 import Text.ParserCombinators.Parsec
 import Data.Map (fromList)
 
+unfoldIcal [] = []
+unfoldIcal ('\r':'\n':' ':xs) = unfoldIcal xs
+unfoldIcal ('\r':'\n':'\t':xs) = unfoldIcal xs
+unfoldIcal (x:xs) = x:(unfoldIcal xs)
+
 -- See rfc5545 3.1
-eol = string "\r\n"
+eol = string crlf
 
-icalFile = endBy line eol
+simpleStringLine s = do
+    v <- string s
+    eol
+    return v
 
-line = do
-    k <- key
-    char ':'
-    v <- value
-    return (k, v)
+property name f = do
+    string name
+    p <- many propertyParam
+    v <- propertyValue
+    eol
+    return $ f p v
 
-key = many (noneOf ":\r\n")
+propertyParam = do
+    char semicolon
+    n <- paramName
+    char '='
+    v <- paramValue
+    return (n, v)
 
-value = do
-    l <- valueFstLine
-    string "\r\n"
-    ls <- many valueNextLines
-    return $ l ++ concat ls
+paramName = many1 $ noneOf "="
 
-valueFstLine = many (noneOf "\r\n")
-valueNextLines = do
-    char ' '
-    fmap (' ':) valueFstLine
+paramValue = many1 $ noneOf [colon, semicolon]
 
-parseIcal s = fmap fromList $ parse icalFile "Invalid data" s
+icalFile = many1 calItem
+
+calItem = vevent
+
+vevent = between veventBegin veventEnd veventContent
+
+veventBegin = simpleStringLine $ calBegin ++ [colon] ++ calVevent
+veventEnd = simpleStringLine $ calEnd ++ [colon] ++ calVevent
+
+veventContent = undefined
+
+propertyValue = many $ noneOf crlf
+
+parseIcal s = undefined --fmap fromList $ parse icalFile "Invalid data" s
