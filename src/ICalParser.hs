@@ -16,6 +16,9 @@ unfoldIcal (x:xs) = x:(unfoldIcal xs)
 
 -- See rfc5545 3.1
 eol = string crlf
+quotedString = between (char dquote) (char dquote) (many qSafeChar)
+safeChar = noneOf [dquote, colon, semicolon, comma]
+qSafeChar = noneOf [dquote]
 
 simpleStringLine s = do
     v <- string s
@@ -39,7 +42,7 @@ propertyParam = do
 
 paramName = many1 $ noneOf "="
 
-paramValue = many1 $ noneOf [colon, semicolon]
+paramValue = quotedString <|> many1 safeChar
 
 icalFile = many1 calItem
 
