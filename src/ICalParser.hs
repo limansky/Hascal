@@ -25,6 +25,7 @@ simpleStringLine s = do
 property name f = do
     string name
     p <- many propertyParam
+    char colon
     v <- propertyValue
     eol
     return $ f p v
