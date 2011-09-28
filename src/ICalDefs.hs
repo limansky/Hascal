@@ -38,10 +38,14 @@ calDateStart = "DTSTART"
 calDateEnd = "DTEND"
 calDateValue = "VALUE"
 calDateValueDate = "DATE"
+calTimeZoneId = "TZID"
 
 
-isoTimeFormat = "%Y%m%dT%H%M%SZ"
-isoTimeFormatDate = "%Y%m%d"
+timeFormatUtcDateTime = "%Y%m%dT%H%M%SZ"
+timeFormatLocalDateTime = "%Y%m%dT%H%M%S"
+timeFormatZonedDateTime = "%Y%m%dT%H%M%S%Z"
+timeFormatDate = "%Y%m%d"
+
 crlf = "\r\n"
 colon = ':'
 semicolon = ';'
@@ -55,8 +59,23 @@ data Role = Chair | ReqParticipant | OptParticipant | NonParticipant
 data PartStat = NeedsAction | Accepted | Declined | Tentative | Delegated | Completed | InProgress
     deriving (Eq, Show)
 
+-- for now we will use hardcoded  current timezone
+-- we will get it from state  or something then
+currentTimezone = TimeZone 240 False "MSK"
+
+-- fir now we will use hardcoded map for long-to-short
+-- timezone names. We will use some real map then
+mapTimeZoneNameAbbr = [
+      ("Europe/Moscow", "MSK")
+    ]
+
+instance Eq ZonedTime where
+    a == b = (zonedTimeToLocalTime a) == (zonedTimeToLocalTime b) && (zonedTimeZone a) == (zonedTimeZone b)
+
 data DateTime = Date { getDay :: Day }
-    | DateTime { getUTCTime :: UTCTime }
+    | UTCDateTime { getUTCTime :: UTCTime }
+    | LocalDateTime { getLocalTime :: LocalTime }
+    | ZonedDateTime { getZonedTime :: ZonedTime }
     deriving (Eq, Show)
 
 data ComponentProperty = Uid { propertyUid :: String }
@@ -102,9 +121,17 @@ makeAttendee p s = Attendee s name role partStat
           role = lookup calRole p >>= (`lookup` roles)
           partStat = lookup calPartStat p >>= (`lookup` partStats)
 
-makeSimpleDateTimeProperty f _ s = f $ parseTime defaultTimeLocale isoTimeFormat s
+makeSimpleDateTimeProperty f _ s = f $ parseTime defaultTimeLocale timeFormatUtcDateTime s
 
-makeDateTimeProperty f ps s = f d
-                            where d = if (calDateValue, calDateValueDate) `elem` ps
-                                        then parseTime defaultTimeLocale isoTimeFormatDate s >>= \date -> Just . Date $ utctDay date
-                                        else parseTime defaultTimeLocale isoTimeFormat s >>= \date -> Just $ DateTime date
+makeDateTimeProperty f ps s = f $ day `chain` zonedtime `chain` utctime `chain` localtime
+                            where chain Nothing fu = fu
+                                  chain just _ = just
+                                  day = if (calDateValue, calDateValueDate) `elem` ps
+                                          then parseTime defaultTimeLocale timeFormatDate s >>= \date -> Just . Date $ utctDay date
+                                          else Nothing
+                                  zonedtime = lookup calTimeZoneId ps >>= (`lookup` mapTimeZoneNameAbbr) >>= Just . (s ++) >>= parseTime defaultTimeLocale timeFormatZonedDateTime >>= \date -> Just $ ZonedDateTime date
+                                  utctime =  parseTime defaultTimeLocale timeFormatUtcDateTime s >>= \date -> Just $ UTCDateTime date
+                                  localtime = unlookup calDateValue ps >> unlookup calTimeZoneId ps >> parseTime defaultTimeLocale timeFormatLocalDateTime s >>= \date -> Just $ LocalDateTime date
+                                  unlookup k s = if (lookup k s) == Nothing
+                                                   then Just True
+                                                   else Nothing
