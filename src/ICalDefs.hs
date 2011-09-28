@@ -1,5 +1,8 @@
 module ICalDefs where
 
+import Data.Time
+import System.Locale
+
 calBegin = "BEGIN"
 calEnd = "END"
 calVevent = "VEVENT"
@@ -8,6 +11,7 @@ calDtEnd = "DTEND"
 calSummary = "SUMMARY"
 calDescription = "DESCRIPTION"
 calUid = "UID"
+
 calCN = "CN"
 calRole = "ROLE"
 calPartStat = "PARTSTAT"
@@ -29,7 +33,15 @@ calPartStatDelegated = "DELEGATED"
 calPartStatCompleted = "COMPLETED"
 calPartStatInProgress = "IN-PROCESS"
 
+calDateStamp = "DTSTAMP"
+calDateStart = "DTSTART"
+calDateEnd = "DTEND"
+calDateValue = "VALUE"
+calDateValueDate = "DATE"
+
+
 isoTimeFormat = "%Y%m%dT%H%M%SZ"
+isoTimeFormatDate = "%Y%m%d"
 crlf = "\r\n"
 colon = ':'
 semicolon = ';'
@@ -43,6 +55,10 @@ data Role = Chair | ReqParticipant | OptParticipant | NonParticipant
 data PartStat = NeedsAction | Accepted | Declined | Tentative | Delegated | Completed | InProgress
     deriving (Eq, Show)
 
+data DateTime = Date { getDay :: Day }
+    | DateTime { getUTCTime :: UTCTime }
+    deriving (Eq, Show)
+
 data ComponentProperty = Uid { propertyUid :: String }
     | Summary { propertySummary :: String }
     | Description { propertyDescription :: String }
@@ -52,8 +68,11 @@ data ComponentProperty = Uid { propertyUid :: String }
                 , organizerName :: Maybe String }
     | Attendee { propertyAttendee :: String
                , attendeeName :: Maybe String
-               , attendeeRole :: Maybe Role 
+               , attendeeRole :: Maybe Role
                , attendeePartStat :: Maybe PartStat }
+    | DateStamp { propertyDateStamp :: Maybe UTCTime }
+    | DateStart { propertyDateStart :: Maybe DateTime }
+    | DateEnd { propertyDateStart :: Maybe DateTime }
     deriving (Eq, Show)
 
 makeStringProperty f _ s = f s
@@ -82,3 +101,10 @@ makeAttendee p s = Attendee s name role partStat
     where name = lookup calCN p
           role = lookup calRole p >>= (`lookup` roles)
           partStat = lookup calPartStat p >>= (`lookup` partStats)
+
+makeSimpleDateTimeProperty f _ s = f $ parseTime defaultTimeLocale isoTimeFormat s
+
+makeDateTimeProperty f ps s = f d
+                            where d = if (calDateValue, calDateValueDate) `elem` ps
+                                        then parseTime defaultTimeLocale isoTimeFormatDate s >>= \date -> Just . Date $ utctDay date
+                                        else parseTime defaultTimeLocale isoTimeFormat s >>= \date -> Just $ DateTime date

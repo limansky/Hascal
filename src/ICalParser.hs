@@ -51,6 +51,9 @@ organizer = property calOrganizer makeOrganizer
 attendee = property calAttendee makeAttendee
 location = property calLocation $ makeStringProperty Location
 priority = property calPriority $ makeNumProperty Priority
+dateStamp = property calDateStamp $ makeSimpleDateTimeProperty DateStamp
+dateStart = property calDateStart $ makeDateTimeProperty DateStart
+dateEnd = property calDateEnd $ makeDateTimeProperty DateEnd
 
 icalFile = many1 calItem
 
