@@ -92,6 +92,9 @@ data ComponentProperty = Uid { propertyUid :: String }
     | DateStamp { propertyDateStamp :: Maybe UTCTime }
     | DateStart { propertyDateStart :: Maybe DateTime }
     | DateEnd { propertyDateStart :: Maybe DateTime }
+    | Unknown { propertyUnknownName :: String
+              , propertyUnknownValue :: String
+              , propertyUnknownParams :: [(String, String)] }
     deriving (Eq, Show)
 
 makeStringProperty f _ s = f s
@@ -135,3 +138,5 @@ makeDateTimeProperty f ps s = f $ day `chain` zonedtime `chain` utctime `chain` 
                                   unlookup k s = if (lookup k s) == Nothing
                                                    then Just True
                                                    else Nothing
+
+makeUnknownProperty n p v = Unknown n v p
