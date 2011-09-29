@@ -9,7 +9,7 @@ calVevent = "VEVENT"
 calVcalendar = "VCALENDAR"
 
 calVersion = "VERSION"
-calPropId = "PROPID"
+calProdId = "PRODID"
 
 calDtStart = "DTSTART"
 calDtEnd = "DTEND"

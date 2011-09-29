@@ -51,15 +51,17 @@ eventToICal e = calLine calBegin calVevent
               desc = lines . eventDescription $ e
               descFooter = concat $ map (\s -> " " ++ s ++ crlf) (tail desc)
 
-{-icalToEvent s = case parseIcal s of
-    Left _  -> Nothing
-    Right m -> parseTime defaultTimeLocale timeFormatUtcDateTime (m M.! calDtStart)
-                >>= \start -> Just $ Event 0 (m M.! calSummary) (m M.! calDescription) start AllDay Nothing
-                -}
+defaultEvent = Event 0 "" "" (UTCTime (ModifiedJulianDay 0) 0) AllDay Nothing
+
 icalToEvents :: String -> Maybe [Event]
 icalToEvents s = case parseIcal s of
     Left _    -> Nothing
     Right cal -> Just $ foldr addEvent [] cal
-    where addEvent (EventData ps) es = (makeEvent ps):es
-          addEvent _ es = es
-          makeEvent ps = undefined -- Event 0 summary descr start AllDay Nothing
+      where addEvent (EventData ps) es = (makeEvent ps):es
+            addEvent _ es = es
+            makeEvent ps = foldr updateEvent defaultEvent ps 
+              where updateEvent (Summary s) e     = e { eventTitle = s }
+                    updateEvent (Description d) e = e { eventDescription = d }
+                    updateEvent (DateStart (Just (Date d))) e = e { eventStart = UTCTime d 0, eventDuration = AllDay }
+                    updateEvent (DateStart (Just (UTCDateTime d))) e = e { eventStart = d, eventDuration = AllDay }
+                    updateEvent _ e = e

@@ -99,7 +99,7 @@ veventContent = do
     return $ EventData ps
 
 version = property calVersion $ makeStringProperty Version
-propId = property calPropId $ makeStringProperty ProdId
+propId = property calProdId $ makeStringProperty ProdId
 
 vcalendar = between vcalendarBegin vcalendarEnd vcalendarContent
 
