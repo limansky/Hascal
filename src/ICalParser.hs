@@ -9,7 +9,6 @@ where
 import ICalDefs
 
 import Text.ParserCombinators.Parsec
-import Data.Map (fromList)
 
 unfoldIcal [] = []
 unfoldIcal ('\r':'\n':' ':xs) = unfoldIcal xs
@@ -38,11 +37,11 @@ property name f = do
     return $ f p v
 
 unknownProperty = do
-#if MIN_VERSION_parsec(3,0,0)
+-- #if MIN_VERSION_parsec(3,0,0)
     notFollowedBy . string $ calEnd ++ [colon]
-#else
-    notFollowedBy $ string (calEnd ++ [colon]) >> return 'a'
-#endif
+-- #else
+--    notFollowedBy $ string (calEnd ++ [colon]) >> return 'a'
+-- #endif
     name <- propertyName
     p <- many propertyParam
     char colon

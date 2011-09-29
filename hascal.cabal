@@ -1,6 +1,6 @@
 Name: Hascal
 Version:            0.0.1
-Cabal-Version:      >= 1.4
+Cabal-Version:      >= 1.10
 License:            BSD3
 License-File:       LICENSE
 Author:             Mike Limansky, Victor Portnov
@@ -10,6 +10,12 @@ Build-Type:         Simple
 Executable          hascal
   Hs-Source-Dirs:       src
   Main-Is:              Hascal.hs
-  Other-Modules:
-    Event
-  Build-Depends:        base, time, old-locale, containers, parsec
+  Build-Depends:        base, time, old-locale, parsec, containers
+  Default-Language:     Haskell2010
+
+Test-Suite          hascal-test
+  Type:                 exitcode-stdio-1.0
+  Hs-Source-Dirs:       src, test
+  Main-Is:              HascalTest.hs
+  Build-Depends:        base, parsec, old-locale, time, QuickCheck
+  Default-Language:     Haskell2010
