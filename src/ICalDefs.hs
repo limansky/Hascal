@@ -6,6 +6,11 @@ import System.Locale
 calBegin = "BEGIN"
 calEnd = "END"
 calVevent = "VEVENT"
+calVcalendar = "VCALENDAR"
+
+calVersion = "VERSION"
+calPropId = "PROPID"
+
 calDtStart = "DTSTART"
 calDtEnd = "DTEND"
 calSummary = "SUMMARY"
@@ -92,9 +97,14 @@ data ComponentProperty = Uid { propertyUid :: String }
     | DateStamp { propertyDateStamp :: Maybe UTCTime }
     | DateStart { propertyDateStart :: Maybe DateTime }
     | DateEnd { propertyDateStart :: Maybe DateTime }
-    | Unknown { propertyUnknownName :: String
-              , propertyUnknownValue :: String
-              , propertyUnknownParams :: [(String, String)] }
+    | UnknownProperty { propertyUnknownName :: String
+                      , propertyUnknownValue :: String
+                      , propertyUnknownParams :: [(String, String)] }
+    deriving (Eq, Show)
+
+data CalendarContent = Version { calendarVersion :: String }
+    | ProdId { calendarProdId :: String }
+    | EventData { eventProperties :: [ComponentProperty] }
     deriving (Eq, Show)
 
 makeStringProperty f _ s = f s
@@ -132,11 +142,16 @@ makeDateTimeProperty f ps s = f $ day `chain` zonedtime `chain` utctime `chain` 
                                   day = if (calDateValue, calDateValueDate) `elem` ps
                                           then parseTime defaultTimeLocale timeFormatDate s >>= \date -> Just . Date $ utctDay date
                                           else Nothing
-                                  zonedtime = lookup calTimeZoneId ps >>= (`lookup` mapTimeZoneNameAbbr) >>= Just . (s ++) >>= parseTime defaultTimeLocale timeFormatZonedDateTime >>= \date -> Just $ ZonedDateTime date
+                                  zonedtime = lookup calTimeZoneId ps >>= (`lookup` mapTimeZoneNameAbbr) 
+                                                                      >>= Just . (s ++) 
+                                                                      >>= parseTime defaultTimeLocale timeFormatZonedDateTime 
+                                                                      >>= \date -> Just $ ZonedDateTime date
                                   utctime =  parseTime defaultTimeLocale timeFormatUtcDateTime s >>= \date -> Just $ UTCDateTime date
-                                  localtime = unlookup calDateValue ps >> unlookup calTimeZoneId ps >> parseTime defaultTimeLocale timeFormatLocalDateTime s >>= \date -> Just $ LocalDateTime date
+                                  localtime = unlookup calDateValue ps >> unlookup calTimeZoneId ps 
+                                                                       >> parseTime defaultTimeLocale timeFormatLocalDateTime s 
+                                                                       >>= \date -> Just $ LocalDateTime date
                                   unlookup k s = if (lookup k s) == Nothing
                                                    then Just True
                                                    else Nothing
 
-makeUnknownProperty n p v = Unknown n v p
+makeUnknownProperty n p v = UnknownProperty n v p

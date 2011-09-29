@@ -38,9 +38,9 @@ property name f = do
 
 unknownProperty = do
 -- #if MIN_VERSION_parsec(3,0,0)
-    notFollowedBy . string $ calEnd ++ [colon]
+--     notFollowedBy . string $ calEnd ++ [colon]
 -- #else
---    notFollowedBy $ string (calEnd ++ [colon]) >> return 'a'
+    notFollowedBy $ string (calEnd ++ [colon]) >> return 'a'
 -- #endif
     name <- propertyName
     p <- many propertyParam
@@ -83,17 +83,32 @@ vevent = between veventBegin veventEnd veventContent
 veventBegin = simpleStringLine $ calBegin ++ [colon] ++ calVevent
 veventEnd = simpleStringLine $ calEnd ++ [colon] ++ calVevent
 
-veventContent = many $ tryChoice [ uid
-                                 , summary
-                                 , description
-                                 , organizer
-                                 , attendee
-                                 , location
-                                 , priority
-                                 , dateStamp
-                                 , dateStart
-                                 , dateEnd
-                                 , unknownProperty
-                                 ]
+veventContent = do
+    ps <- many $ tryChoice [ uid
+                           , summary
+                           , description
+                           , organizer
+                           , attendee
+                           , location
+                           , priority
+                           , dateStamp
+                           , dateStart
+                           , dateEnd
+                           , unknownProperty
+                           ]
+    return $ EventData ps
 
-parseIcal s = undefined --fmap fromList $ parse icalFile "Invalid data" s
+version = property calVersion $ makeStringProperty Version
+propId = property calPropId $ makeStringProperty ProdId
+
+vcalendar = between vcalendarBegin vcalendarEnd vcalendarContent
+
+vcalendarBegin = simpleStringLine $ calBegin ++ [colon] ++ calVcalendar
+vcalendarEnd = simpleStringLine $ calEnd ++ [colon] ++ calVcalendar
+
+vcalendarContent = many $ tryChoice [ version
+                                    , propId
+                                    , vevent
+                                    ]
+
+parseIcal s = parse vcalendar "Invalid data" $ unfoldIcal s

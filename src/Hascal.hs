@@ -28,4 +28,7 @@ importICS fn = do
     putStrLn $ "Importing file:" ++ fn
     h <- openFile fn ReadMode
     cont <- hGetContents h
-    putStrLn . show $ icalToEvent cont
+    case icalToEvents cont of 
+        Nothing -> putStrLn "Failed to parse ICS file"
+        (Just es) -> mapM (putStrLn . show) es >> return ()
+    hClose h
