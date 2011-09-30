@@ -37,11 +37,11 @@ property name f = do
     return $ f p v
 
 unknownProperty = do
--- #if MIN_VERSION_parsec(3,0,0)
---     notFollowedBy . string $ calEnd ++ [colon]
--- #else
+#if MIN_VERSION_parsec(3,0,0)
+    notFollowedBy . string $ calEnd ++ [colon]
+#else
     notFollowedBy $ string (calEnd ++ [colon]) >> return 'a'
--- #endif
+#endif
     name <- propertyName
     p <- many propertyParam
     char colon
