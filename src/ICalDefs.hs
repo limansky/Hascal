@@ -2,6 +2,7 @@ module ICalDefs where
 
 import Data.Time
 import System.Locale
+import Control.Monad (liftM)
 
 calBegin = "BEGIN"
 calEnd = "END"
@@ -48,7 +49,7 @@ calTimeZoneId = "TZID"
 
 timeFormatUtcDateTime = "%Y%m%dT%H%M%SZ"
 timeFormatLocalDateTime = "%Y%m%dT%H%M%S"
-timeFormatZonedDateTime = "%Y%m%dT%H%M%S%Z"
+timeFormatZonedDateTime = "%Z%Y%m%dT%H%M%S"
 timeFormatDate = "%Y%m%d"
 
 crlf = "\r\n"
@@ -140,16 +141,17 @@ makeDateTimeProperty f ps s = f $ day `chain` zonedtime `chain` utctime `chain` 
                             where chain Nothing fu = fu
                                   chain just _ = just
                                   day = if (calDateValue, calDateValueDate) `elem` ps
-                                          then parseTime defaultTimeLocale timeFormatDate s >>= \date -> Just . Date $ utctDay date
+                                          then (Date . utctDay) `liftM` parseTime defaultTimeLocale timeFormatDate s
                                           else Nothing
                                   zonedtime = lookup calTimeZoneId ps >>= (`lookup` mapTimeZoneNameAbbr) 
-                                                                      >>= Just . (s ++) 
+                                                                      >>= Just . (++ s)
                                                                       >>= parseTime defaultTimeLocale timeFormatZonedDateTime 
-                                                                      >>= \date -> Just $ ZonedDateTime date
-                                  utctime =  parseTime defaultTimeLocale timeFormatUtcDateTime s >>= \date -> Just $ UTCDateTime date
+                                                                      >>= Just . ZonedDateTime
+                                  utctime =  unlookup calDateValue ps >> unlookup calTimeZoneId ps
+                                                                      >> UTCDateTime `liftM` parseTime defaultTimeLocale timeFormatUtcDateTime s
                                   localtime = unlookup calDateValue ps >> unlookup calTimeZoneId ps 
                                                                        >> parseTime defaultTimeLocale timeFormatLocalDateTime s 
-                                                                       >>= \date -> Just $ LocalDateTime date
+                                                                       >>= Just . LocalDateTime
                                   unlookup k s = if (lookup k s) == Nothing
                                                    then Just True
                                                    else Nothing
