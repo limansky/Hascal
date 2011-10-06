@@ -22,19 +22,29 @@ eol = string crlf
 quotedString = between (char dquote) (char dquote) (many qSafeChar)
 safeChar = noneOf [dquote, colon, semicolon, comma]
 qSafeChar = noneOf [dquote]
+tSafeChar = noneOf ([semicolon, comma, backslash] ++ crlf) <|> escapedChar
+
+escapedChar :: CharParser () Char
+escapedChar = do
+    char backslash
+    ((char 'n' <|> char 'N') >> return '\n') 
+        <|> oneOf [backslash, semicolon, comma]
 
 simpleStringLine s = do
     v <- string s
     eol
     return v
 
-property name f = do
+property name f vp = do
     string name
     p <- many propertyParam
     char colon
-    v <- propertyValue
+    v <- vp
     eol
     return $ f p v
+
+textProperty name f = property name f propertyValueText
+generalProperty name f = property name f propertyValueGeneral
 
 unknownProperty = do
 #if MIN_VERSION_parsec(3,0,0)
@@ -45,12 +55,13 @@ unknownProperty = do
     name <- propertyName
     p <- many propertyParam
     char colon
-    v <- propertyValue
+    v <- propertyValueGeneral
     eol
     return $ makeUnknownProperty name p v
 
 propertyName = many1 safeChar
-propertyValue = many $ noneOf crlf
+propertyValueText = many1 tSafeChar
+propertyValueGeneral = many1 $ noneOf crlf
 
 propertyParam = do
     char semicolon
@@ -63,16 +74,16 @@ paramName = many1 $ noneOf "="
 
 paramValue = quotedString <|> many1 safeChar
 
-uid = property calUid $ makeStringProperty Uid
-summary = property calSummary $ makeStringProperty Summary
-description = property calDescription $ makeStringProperty Description
-organizer = property calOrganizer makeOrganizer
-attendee = property calAttendee makeAttendee
-location = property calLocation $ makeStringProperty Location
-priority = property calPriority $ makeNumProperty Priority
-dateStamp = property calDateStamp $ makeSimpleDateTimeProperty DateStamp
-dateStart = property calDateStart $ makeDateTimeProperty DateStart
-dateEnd = property calDateEnd $ makeDateTimeProperty DateEnd
+uid = textProperty calUid $ makeStringProperty Uid
+summary = generalProperty calSummary $ makeStringProperty Summary
+description = generalProperty calDescription $ makeStringProperty Description
+organizer = generalProperty calOrganizer makeOrganizer
+attendee = generalProperty calAttendee makeAttendee
+location = generalProperty calLocation $ makeStringProperty Location
+priority = generalProperty calPriority $ makeNumProperty Priority
+dateStamp = generalProperty calDateStamp $ makeSimpleDateTimeProperty DateStamp
+dateStart = generalProperty calDateStart $ makeDateTimeProperty DateStart
+dateEnd = generalProperty calDateEnd $ makeDateTimeProperty DateEnd
 
 icalFile = many1 calItem
 
@@ -98,8 +109,8 @@ veventContent = do
                            ]
     return $ EventData ps
 
-version = property calVersion $ makeStringProperty Version
-propId = property calProdId $ makeStringProperty ProdId
+version = generalProperty calVersion $ makeStringProperty Version
+propId = generalProperty calProdId $ makeStringProperty ProdId
 
 vcalendar = between vcalendarBegin vcalendarEnd vcalendarContent
 
