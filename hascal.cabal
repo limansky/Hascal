@@ -17,5 +17,5 @@ Test-Suite          hascal-test
   Type:                 exitcode-stdio-1.0
   Hs-Source-Dirs:       src, test
   Main-Is:              HascalTest.hs
-  Build-Depends:        base, parsec, old-locale, time, QuickCheck
+  Build-Depends:        base, parsec, old-locale, time, QuickCheck, test-framework, test-framework-quickcheck2
   Default-Language:     Haskell2010

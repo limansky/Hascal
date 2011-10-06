@@ -1,12 +1,11 @@
-import ICalParser
-import ICalDefs
+import Test.Framework (defaultMain, testGroup)
+import Test.Framework.Providers.QuickCheck2 (testProperty)
+import ICalParserTests
 
-import Test.QuickCheck
-import Text.ParserCombinators.Parsec
+main = defaultMain tests
 
-fromRight (Right x) = x
-
-checkUid s = (fromRight $ parse uid "" ("UID:" ++ s ++ "\r\n")) == Uid s
-
-main = do
-    quickCheck checkUid
+tests = [
+        testGroup "Parser tests" [
+                testProperty "Random test for uid" prop_uid
+            ]
+        ]
