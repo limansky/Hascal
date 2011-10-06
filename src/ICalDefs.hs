@@ -57,6 +57,8 @@ colon = ':'
 semicolon = ';'
 dquote = '"'
 comma = ','
+backslash = '\\'
+
 
 -- Looks like custom roles can be also
 data Role = Chair | ReqParticipant | OptParticipant | NonParticipant
